@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using StudentManagementAppASP.Data;
+using StudentManagementApp.Infrastructure.Data;
 
 #nullable disable
 
-namespace StudentManagementAppASP.Migrations
+namespace StudentManagementApp.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251107165605_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,7 +25,7 @@ namespace StudentManagementAppASP.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("StudentManagementAppASP.Models.Course", b =>
+            modelBuilder.Entity("StudentManagementApp.Domain.Entities.Course", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -38,8 +41,7 @@ namespace StudentManagementAppASP.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -48,7 +50,7 @@ namespace StudentManagementAppASP.Migrations
                     b.ToTable("Courses");
                 });
 
-            modelBuilder.Entity("StudentManagementAppASP.Models.Enrollment", b =>
+            modelBuilder.Entity("StudentManagementApp.Domain.Entities.Enrollment", b =>
                 {
                     b.Property<int>("StudentId")
                         .HasColumnType("int");
@@ -66,7 +68,7 @@ namespace StudentManagementAppASP.Migrations
                     b.ToTable("Enrollments");
                 });
 
-            modelBuilder.Entity("StudentManagementAppASP.Models.Student", b =>
+            modelBuilder.Entity("StudentManagementApp.Domain.Entities.Student", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -83,13 +85,11 @@ namespace StudentManagementAppASP.Migrations
 
                     b.Property<string>("FirstName")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LastName")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Phone")
                         .IsRequired()
@@ -100,7 +100,7 @@ namespace StudentManagementAppASP.Migrations
                     b.ToTable("Students");
                 });
 
-            modelBuilder.Entity("StudentManagementAppASP.Models.Teacher", b =>
+            modelBuilder.Entity("StudentManagementApp.Domain.Entities.Teacher", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -114,17 +114,16 @@ namespace StudentManagementAppASP.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Teachers");
                 });
 
-            modelBuilder.Entity("StudentManagementAppASP.Models.Course", b =>
+            modelBuilder.Entity("StudentManagementApp.Domain.Entities.Course", b =>
                 {
-                    b.HasOne("StudentManagementAppASP.Models.Teacher", "Teacher")
+                    b.HasOne("StudentManagementApp.Domain.Entities.Teacher", "Teacher")
                         .WithMany("Courses")
                         .HasForeignKey("TeacherId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -133,15 +132,15 @@ namespace StudentManagementAppASP.Migrations
                     b.Navigation("Teacher");
                 });
 
-            modelBuilder.Entity("StudentManagementAppASP.Models.Enrollment", b =>
+            modelBuilder.Entity("StudentManagementApp.Domain.Entities.Enrollment", b =>
                 {
-                    b.HasOne("StudentManagementAppASP.Models.Course", "Course")
+                    b.HasOne("StudentManagementApp.Domain.Entities.Course", "Course")
                         .WithMany("Enrollments")
                         .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("StudentManagementAppASP.Models.Student", "Student")
+                    b.HasOne("StudentManagementApp.Domain.Entities.Student", "Student")
                         .WithMany("Enrollments")
                         .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -152,17 +151,17 @@ namespace StudentManagementAppASP.Migrations
                     b.Navigation("Student");
                 });
 
-            modelBuilder.Entity("StudentManagementAppASP.Models.Course", b =>
+            modelBuilder.Entity("StudentManagementApp.Domain.Entities.Course", b =>
                 {
                     b.Navigation("Enrollments");
                 });
 
-            modelBuilder.Entity("StudentManagementAppASP.Models.Student", b =>
+            modelBuilder.Entity("StudentManagementApp.Domain.Entities.Student", b =>
                 {
                     b.Navigation("Enrollments");
                 });
 
-            modelBuilder.Entity("StudentManagementAppASP.Models.Teacher", b =>
+            modelBuilder.Entity("StudentManagementApp.Domain.Entities.Teacher", b =>
                 {
                     b.Navigation("Courses");
                 });

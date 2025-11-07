@@ -1,85 +1,71 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using StudentManagementAppASP.Data;
-using StudentManagementAppASP.Models;
+using StudentManagementApp.Domain.Entities;
+using StudentManagementApp.Domain.Interfaces;
 
 namespace StudentManagementAppASP.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class TeacherController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly ITeacherRepository _teachers;
 
-        public TeacherController(AppDbContext context)
+        public TeacherController(ITeacherRepository teachers)
         {
-            _context = context;
+            _teachers = teachers;
         }
 
-        // ✅ GET: api/teacher
+        // GET: api/teacher
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Teacher>>> GetTeachers()
+        public async Task<IActionResult> GetTeachers()
         {
-            var teachers = await _context.Teachers.ToListAsync();
-            return Ok(teachers);
+            var list = await _teachers.GetAllAsync();
+            return Ok(list);
         }
 
-        // ✅ GET: api/teacher/5
+        // GET: api/teacher/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Teacher>> GetTeacher(int id)
+        public async Task<IActionResult> GetTeacher(int id)
         {
-            var teacher = await _context.Teachers.FindAsync(id);
+            var teacher = await _teachers.GetByIdAsync(id);
+
             if (teacher == null)
                 return NotFound();
 
             return Ok(teacher);
         }
 
-        // ✅ POST: api/teacher
+        // POST: api/teacher
         [HttpPost]
-        public async Task<ActionResult<Teacher>> PostTeacher(Teacher teacher)
+        public async Task<IActionResult> PostTeacher(Teacher teacher)
         {
-            _context.Teachers.Add(teacher);
-            await _context.SaveChangesAsync();
-
-            // برمی‌گردونه URL شیء جدید ایجاد شده
+            await _teachers.AddAsync(teacher);
             return CreatedAtAction(nameof(GetTeacher), new { id = teacher.Id }, teacher);
         }
 
-        // ✅ PUT: api/teacher/5
+        // PUT: api/teacher/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutTeacher(int id, Teacher teacher)
         {
             if (id != teacher.Id)
                 return BadRequest("Id mismatch");
 
-            _context.Entry(teacher).State = EntityState.Modified;
+            var updated = await _teachers.UpdateAsync(teacher);
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!_context.Teachers.Any(e => e.Id == id))
-                    return NotFound();
-                else
-                    throw;
-            }
+            if (!updated)
+                return NotFound();
 
             return NoContent();
         }
 
-        // ✅ DELETE: api/teacher/5
+        // DELETE: api/teacher/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTeacher(int id)
         {
-            var teacher = await _context.Teachers.FindAsync(id);
-            if (teacher == null)
-                return NotFound();
+            var ok = await _teachers.DeleteAsync(id);
 
-            _context.Teachers.Remove(teacher);
-            await _context.SaveChangesAsync();
+            if (!ok)
+                return NotFound();
 
             return NoContent();
         }

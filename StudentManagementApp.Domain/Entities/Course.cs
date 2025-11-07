@@ -1,19 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StudentManagementAppASP.Models
+namespace StudentManagementApp.Domain.Entities
 {
     public class Course
     {
         public int Id { get; set; }
-
-        [Required, StringLength(100)]
         public string Title { get; set; }
-
         public int Credits { get; set; }
 
         // One-to-Many: Teacher -> Courses
