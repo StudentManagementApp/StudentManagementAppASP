@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using AutoMapper;
+using StudentManagementApp.Application.DTOs;
 using StudentManagementApp.Domain.Entities;
 using StudentManagementApp.Domain.Interfaces;
 
@@ -9,21 +11,24 @@ namespace StudentManagementAppASP.Controllers
     public class EnrollmentController : ControllerBase
     {
         private readonly IEnrollmentRepository _enrollments;
+        private readonly IMapper _mapper;
 
-        public EnrollmentController(IEnrollmentRepository enrollments)
+        public EnrollmentController(IEnrollmentRepository enrollments, IMapper mapper)
         {
             _enrollments = enrollments;
+            _mapper = mapper;
         }
 
-        // GET: api/enrollment
+        // ✅ GET: api/enrollment
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var enrollments = await _enrollments.GetAllAsync();
-            return Ok(enrollments);
+            var dtoList = _mapper.Map<IEnumerable<EnrollmentDto>>(enrollments);
+            return Ok(dtoList);
         }
 
-        // GET: api/enrollment/{studentId}/{courseId}
+        // ✅ GET: api/enrollment/{studentId}/{courseId}
         [HttpGet("{studentId:int}/{courseId:int}")]
         public async Task<IActionResult> GetEnrollment(int studentId, int courseId)
         {
@@ -32,40 +37,46 @@ namespace StudentManagementAppASP.Controllers
             if (enrollment == null)
                 return NotFound();
 
-            return Ok(enrollment);
+            var dto = _mapper.Map<EnrollmentDto>(enrollment);
+            return Ok(dto);
         }
 
-        // POST: api/enrollment
+        // ✅ POST: api/enrollment
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Enrollment enrollment)
+        public async Task<IActionResult> Create([FromBody] CreateEnrollmentDto dto)
         {
-            if (enrollment == null)
+            if (dto == null)
                 return BadRequest("Invalid enrollment data.");
 
+            var enrollment = _mapper.Map<Enrollment>(dto);
             await _enrollments.AddAsync(enrollment);
 
+            var result = _mapper.Map<EnrollmentDto>(enrollment);
             return CreatedAtAction(
                 nameof(GetEnrollment),
                 new { studentId = enrollment.StudentId, courseId = enrollment.CourseId },
-                enrollment
+                result
             );
         }
 
-        // PUT: api/enrollment/{studentId}/{courseId}
+        // ✅ PUT: api/enrollment/{studentId}/{courseId}
         [HttpPut("{studentId:int}/{courseId:int}")]
-        public async Task<IActionResult> Update(int studentId, int courseId, [FromBody] Enrollment enrollment)
+        public async Task<IActionResult> Update(int studentId, int courseId, [FromBody] UpdateEnrollmentDto dto)
         {
+            if (dto == null)
+                return BadRequest("Invalid enrollment data.");
+
+            var enrollment = await _enrollments.GetAsync(studentId, courseId);
             if (enrollment == null)
-                return BadRequest("Enrollment data cannot be null.");
+                return NotFound();
 
-            if (studentId != enrollment.StudentId || courseId != enrollment.CourseId)
-                return BadRequest("StudentId and CourseId must match the URL parameters.");
-
+            _mapper.Map(dto, enrollment);
             await _enrollments.UpdateAsync(enrollment);
+
             return NoContent();
         }
 
-        // DELETE: api/enrollment/{studentId}/{courseId}
+        // ✅ DELETE: api/enrollment/{studentId}/{courseId}
         [HttpDelete("{studentId:int}/{courseId:int}")]
         public async Task<IActionResult> Delete(int studentId, int courseId)
         {
