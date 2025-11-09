@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\StudentManagementApp.Domain\StudentManagementApp.Domain.csproj" />
+    <ProjectReference Include="..\StudentManagementApp.Application\StudentManagementApp.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>
