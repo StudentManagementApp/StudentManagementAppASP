@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using AutoMapper;
 using StudentManagementApp.Domain.Entities;
 using StudentManagementApp.Domain.Interfaces;
+using StudentManagementApp.Application.DTOs;
 
 namespace StudentManagementAppASP.Controllers
 {
@@ -9,21 +11,24 @@ namespace StudentManagementAppASP.Controllers
     public class StudentsController : ControllerBase
     {
         private readonly IStudentRepository _students;
+        private readonly IMapper _mapper;
 
-        public StudentsController(IStudentRepository students)
+        public StudentsController(IStudentRepository students, IMapper mapper)
         {
             _students = students;
+            _mapper = mapper;
         }
 
-        // GET: api/students
+        // ✅ GET: api/students
         [HttpGet]
         public async Task<IActionResult> GetStudents()
         {
             var list = await _students.GetAllAsync();
-            return Ok(list);
+            var dtoList = _mapper.Map<IEnumerable<StudentDto>>(list);
+            return Ok(dtoList);
         }
 
-        // GET: api/students/5
+        // ✅ GET: api/students/5
         [HttpGet("{id}")]
         public async Task<IActionResult> GetStudent(int id)
         {
@@ -32,25 +37,30 @@ namespace StudentManagementAppASP.Controllers
             if (student == null)
                 return NotFound();
 
-            return Ok(student);
+            var dto = _mapper.Map<StudentDto>(student);
+            return Ok(dto);
         }
 
-        // POST: api/students
+        // ✅ POST: api/students
         [HttpPost]
-        public async Task<IActionResult> PostStudent(Student student)
+        public async Task<IActionResult> PostStudent(CreateStudentDto dto)
         {
+            var student = _mapper.Map<Student>(dto);
             await _students.AddAsync(student);
-            return CreatedAtAction(nameof(GetStudent), new { id = student.Id }, student);
+            var resultDto = _mapper.Map<StudentDto>(student);
+            return CreatedAtAction(nameof(GetStudent), new { id = student.Id }, resultDto);
         }
 
-        // PUT: api/students/5
+        // ✅ PUT: api/students/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutStudent(int id, Student student)
+        public async Task<IActionResult> PutStudent(int id, UpdateStudentDto dto)
         {
-            if (id != student.Id)
-                return BadRequest();
+            var existingStudent = await _students.GetByIdAsync(id);
+            if (existingStudent == null)
+                return NotFound();
 
-            var updated = await _students.UpdateAsync(student);
+            _mapper.Map(dto, existingStudent); // update fields
+            var updated = await _students.UpdateAsync(existingStudent);
 
             if (!updated)
                 return NotFound();
@@ -58,7 +68,7 @@ namespace StudentManagementAppASP.Controllers
             return NoContent();
         }
 
-        // DELETE: api/students/5
+        // ✅ DELETE: api/students/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudent(int id)
         {
