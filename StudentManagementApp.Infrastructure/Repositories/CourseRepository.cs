@@ -30,14 +30,13 @@ namespace StudentManagementApp.Infrastructure.Repositories
 
         public async Task AddAsync(Course course)
         {
-            _db.Courses.Add(course);
-            await _db.SaveChangesAsync();
+            await _db.Courses.AddAsync(course);
         }
 
-        public async Task UpdateAsync(Course course)
+        public Task UpdateAsync(Course course)
         {
             _db.Courses.Update(course);
-            await _db.SaveChangesAsync();
+            return Task.CompletedTask;
         }
 
         public async Task DeleteAsync(int id)
@@ -46,7 +45,6 @@ namespace StudentManagementApp.Infrastructure.Repositories
             if (course != null)
             {
                 _db.Courses.Remove(course);
-                await _db.SaveChangesAsync();
             }
         }
     }

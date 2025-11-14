@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using StudentManagementApp.Domain.Interfaces;
 using StudentManagementApp.Infrastructure.Data;
 using StudentManagementApp.Infrastructure.Repositories;
-
+using StudentManagementApp.Infrastructure.UnitOfWork;
 namespace StudentManagementApp.Infrastructure
 {
     public static class DependencyInjection
@@ -24,6 +24,9 @@ namespace StudentManagementApp.Infrastructure
             services.AddScoped<ITeacherRepository, TeacherRepository>();
             services.AddScoped<ICourseRepository, CourseRepository>();
             services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
+
+            // Register UnitOfWork  (FULL NAME to avoid namespace conflict)
+            services.AddScoped<IUnitOfWork, UnitOfWork.UnitOfWork>();
 
             return services;
         }

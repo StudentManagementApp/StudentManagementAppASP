@@ -16,7 +16,10 @@ namespace StudentManagementApp.Infrastructure.Repositories
 
         public async Task<IEnumerable<Enrollment>> GetAllAsync()
         {
-            return await _db.Enrollments.ToListAsync();
+            return await _db.Enrollments
+                .Include(e => e.Student)
+                .Include(e => e.Course)
+                .ToListAsync();
         }
 
         public async Task<Enrollment?> GetAsync(int studentId, int courseId)
@@ -30,13 +33,12 @@ namespace StudentManagementApp.Infrastructure.Repositories
         public async Task AddAsync(Enrollment enrollment)
         {
             await _db.Enrollments.AddAsync(enrollment);
-            await _db.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(Enrollment enrollment)
+        public Task UpdateAsync(Enrollment enrollment)
         {
             _db.Enrollments.Update(enrollment);
-            await _db.SaveChangesAsync();
+            return Task.CompletedTask;
         }
 
         public async Task DeleteAsync(int studentId, int courseId)
@@ -47,7 +49,6 @@ namespace StudentManagementApp.Infrastructure.Repositories
             if (enrollment != null)
             {
                 _db.Enrollments.Remove(enrollment);
-                await _db.SaveChangesAsync();
             }
         }
     }

@@ -10,12 +10,12 @@ namespace StudentManagementAppASP.Controllers
     [Route("api/[controller]")]
     public class StudentsController : ControllerBase
     {
-        private readonly IStudentRepository _students;
+        private readonly IUnitOfWork _uow;
         private readonly IMapper _mapper;
 
-        public StudentsController(IStudentRepository students, IMapper mapper)
+        public StudentsController(IUnitOfWork uow, IMapper mapper)
         {
-            _students = students;
+            _uow = uow;
             _mapper = mapper;
         }
 
@@ -23,16 +23,16 @@ namespace StudentManagementAppASP.Controllers
         [HttpGet]
         public async Task<IActionResult> GetStudents()
         {
-            var list = await _students.GetAllAsync();
+            var list = await _uow.Students.GetAllAsync();
             var dtoList = _mapper.Map<IEnumerable<StudentDto>>(list);
             return Ok(dtoList);
         }
 
-        // ✅ GET: api/students/5
+        // ✅ GET: api/students/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> GetStudent(int id)
         {
-            var student = await _students.GetByIdAsync(id);
+            var student = await _uow.Students.GetByIdAsync(id);
 
             if (student == null)
                 return NotFound();
@@ -46,21 +46,29 @@ namespace StudentManagementAppASP.Controllers
         public async Task<IActionResult> PostStudent(CreateStudentDto dto)
         {
             var student = _mapper.Map<Student>(dto);
-            await _students.AddAsync(student);
+
+            await _uow.Students.AddAsync(student);
+            await _uow.SaveChangesAsync();
+
             var resultDto = _mapper.Map<StudentDto>(student);
+
             return CreatedAtAction(nameof(GetStudent), new { id = student.Id }, resultDto);
         }
 
-        // ✅ PUT: api/students/5
+        // ✅ PUT: api/students/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> PutStudent(int id, UpdateStudentDto dto)
         {
-            var existingStudent = await _students.GetByIdAsync(id);
+            var existingStudent = await _uow.Students.GetByIdAsync(id);
+
             if (existingStudent == null)
                 return NotFound();
 
-            _mapper.Map(dto, existingStudent); // update fields
-            var updated = await _students.UpdateAsync(existingStudent);
+            _mapper.Map(dto, existingStudent);
+
+            var updated = await _uow.Students.UpdateAsync(existingStudent);
+
+            await _uow.SaveChangesAsync();
 
             if (!updated)
                 return NotFound();
@@ -68,14 +76,16 @@ namespace StudentManagementAppASP.Controllers
             return NoContent();
         }
 
-        // ✅ DELETE: api/students/5
+        // ✅ DELETE: api/students/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudent(int id)
         {
-            var ok = await _students.DeleteAsync(id);
+            var ok = await _uow.Students.DeleteAsync(id);
 
             if (!ok)
                 return NotFound();
+
+            await _uow.SaveChangesAsync();
 
             return NoContent();
         }
