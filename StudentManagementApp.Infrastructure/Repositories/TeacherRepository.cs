@@ -26,16 +26,15 @@ namespace StudentManagementApp.Infrastructure.Repositories
 
         public async Task AddAsync(Teacher teacher)
         {
-            _context.Teachers.Add(teacher);
-            await _context.SaveChangesAsync();
+            await _context.Teachers.AddAsync(teacher);
         }
 
         public async Task<bool> UpdateAsync(Teacher teacher)
         {
-            if (!_context.Teachers.Any(t => t.Id == teacher.Id)) return false;
+            if (!await _context.Teachers.AnyAsync(t => t.Id == teacher.Id)) 
+                return false;
 
             _context.Teachers.Update(teacher);
-            await _context.SaveChangesAsync();
             return true;
         }
 
@@ -45,7 +44,6 @@ namespace StudentManagementApp.Infrastructure.Repositories
             if (teacher == null) return false;
 
             _context.Teachers.Remove(teacher);
-            await _context.SaveChangesAsync();
             return true;
         }
     }

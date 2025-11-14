@@ -10,12 +10,12 @@ namespace StudentManagementAppASP.Controllers
     [Route("api/[controller]")]
     public class CourseController : ControllerBase
     {
-        private readonly ICourseRepository _courses;
+        private readonly IUnitOfWork _uow;
         private readonly IMapper _mapper;
 
-        public CourseController(ICourseRepository courses, IMapper mapper)
+        public CourseController(IUnitOfWork uow, IMapper mapper)
         {
-            _courses = courses;
+            _uow = uow;
             _mapper = mapper;
         }
 
@@ -23,7 +23,7 @@ namespace StudentManagementAppASP.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllCourses()
         {
-            var courses = await _courses.GetAllAsync();
+            var courses = await _uow.Courses.GetAllAsync();
             var dtoList = _mapper.Map<IEnumerable<CourseDto>>(courses);
             return Ok(dtoList);
         }
@@ -32,7 +32,7 @@ namespace StudentManagementAppASP.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetCourse(int id)
         {
-            var course = await _courses.GetByIdAsync(id);
+            var course = await _uow.Courses.GetByIdAsync(id);
             if (course == null)
                 return NotFound();
 
@@ -48,7 +48,9 @@ namespace StudentManagementAppASP.Controllers
                 return BadRequest("Invalid course data.");
 
             var course = _mapper.Map<Course>(dto);
-            await _courses.AddAsync(course);
+
+            await _uow.Courses.AddAsync(course);
+            await _uow.SaveChangesAsync();
 
             var result = _mapper.Map<CourseDto>(course);
             return CreatedAtAction(nameof(GetCourse), new { id = course.Id }, result);
@@ -61,12 +63,14 @@ namespace StudentManagementAppASP.Controllers
             if (dto == null)
                 return BadRequest("Invalid course data.");
 
-            var course = await _courses.GetByIdAsync(id);
+            var course = await _uow.Courses.GetByIdAsync(id);
             if (course == null)
                 return NotFound();
 
             _mapper.Map(dto, course);
-            await _courses.UpdateAsync(course);
+
+            await _uow.Courses.UpdateAsync(course);
+            await _uow.SaveChangesAsync();
 
             return NoContent();
         }
@@ -75,11 +79,13 @@ namespace StudentManagementAppASP.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteCourse(int id)
         {
-            var course = await _courses.GetByIdAsync(id);
+            var course = await _uow.Courses.GetByIdAsync(id);
             if (course == null)
                 return NotFound();
 
-            await _courses.DeleteAsync(id);
+            await _uow.Courses.DeleteAsync(id);
+            await _uow.SaveChangesAsync(); 
+
             return NoContent();
         }
     }

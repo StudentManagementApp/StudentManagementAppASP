@@ -10,12 +10,12 @@ namespace StudentManagementAppASP.Controllers
     [Route("api/[controller]")]
     public class EnrollmentController : ControllerBase
     {
-        private readonly IEnrollmentRepository _enrollments;
+        private readonly IUnitOfWork _uow;
         private readonly IMapper _mapper;
 
-        public EnrollmentController(IEnrollmentRepository enrollments, IMapper mapper)
+        public EnrollmentController(IUnitOfWork uow, IMapper mapper)
         {
-            _enrollments = enrollments;
+            _uow = uow;
             _mapper = mapper;
         }
 
@@ -23,7 +23,7 @@ namespace StudentManagementAppASP.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var enrollments = await _enrollments.GetAllAsync();
+            var enrollments = await _uow.Enrollments.GetAllAsync();
             var dtoList = _mapper.Map<IEnumerable<EnrollmentDto>>(enrollments);
             return Ok(dtoList);
         }
@@ -32,7 +32,7 @@ namespace StudentManagementAppASP.Controllers
         [HttpGet("{studentId:int}/{courseId:int}")]
         public async Task<IActionResult> GetEnrollment(int studentId, int courseId)
         {
-            var enrollment = await _enrollments.GetAsync(studentId, courseId);
+            var enrollment = await _uow.Enrollments.GetAsync(studentId, courseId);
 
             if (enrollment == null)
                 return NotFound();
@@ -49,9 +49,12 @@ namespace StudentManagementAppASP.Controllers
                 return BadRequest("Invalid enrollment data.");
 
             var enrollment = _mapper.Map<Enrollment>(dto);
-            await _enrollments.AddAsync(enrollment);
+
+            await _uow.Enrollments.AddAsync(enrollment);
+            await _uow.SaveChangesAsync(); 
 
             var result = _mapper.Map<EnrollmentDto>(enrollment);
+
             return CreatedAtAction(
                 nameof(GetEnrollment),
                 new { studentId = enrollment.StudentId, courseId = enrollment.CourseId },
@@ -66,12 +69,14 @@ namespace StudentManagementAppASP.Controllers
             if (dto == null)
                 return BadRequest("Invalid enrollment data.");
 
-            var enrollment = await _enrollments.GetAsync(studentId, courseId);
+            var enrollment = await _uow.Enrollments.GetAsync(studentId, courseId);
             if (enrollment == null)
                 return NotFound();
 
             _mapper.Map(dto, enrollment);
-            await _enrollments.UpdateAsync(enrollment);
+
+            await _uow.Enrollments.UpdateAsync(enrollment);
+            await _uow.SaveChangesAsync(); 
 
             return NoContent();
         }
@@ -80,11 +85,13 @@ namespace StudentManagementAppASP.Controllers
         [HttpDelete("{studentId:int}/{courseId:int}")]
         public async Task<IActionResult> Delete(int studentId, int courseId)
         {
-            var existing = await _enrollments.GetAsync(studentId, courseId);
+            var existing = await _uow.Enrollments.GetAsync(studentId, courseId);
             if (existing == null)
                 return NotFound();
 
-            await _enrollments.DeleteAsync(studentId, courseId);
+            await _uow.Enrollments.DeleteAsync(studentId, courseId);
+            await _uow.SaveChangesAsync();
+
             return NoContent();
         }
     }
